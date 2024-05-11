@@ -17,6 +17,7 @@ class Telecom:
     def set_login_info(self, login_info):
         self.login_info = login_info
         self.phonenum = login_info.get("phoneNbr", None)
+        self.password = login_info.get("password", None)
 
     def trans_phone(self, phone_num):
         result = ""
@@ -87,12 +88,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         )
         # print(response.text)
         data = response.json()
-        if data.get("responseData", {}).get("data", {}).get("loginSuccessResult"):
-            login_info = data["responseData"]["data"]["loginSuccessResult"]
-            login_info["createTime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            return login_info
-        else:
-            return {}
+        return data
 
     def qry_important_data(self, token=""):
         token = token or self.login_info["token"]

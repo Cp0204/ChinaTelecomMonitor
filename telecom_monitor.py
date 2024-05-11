@@ -90,7 +90,7 @@ def main():
         login_failure_count = CONFIG_DATA.get("user", {}).get("loginFailureCount", 0)
         if login_failure_count < 5:
             data = telecom.do_login(phonenum, password)
-            if data.get("responseData", {}).get("data", {}).get("loginSuccessResult"):
+            if data.get("responseData").get("resultCode") == "0000":
                 print(f"自动登录：成功")
                 login_info = data["responseData"]["data"]["loginSuccessResult"]
                 login_info["createTime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

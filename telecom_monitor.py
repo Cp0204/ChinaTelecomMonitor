@@ -83,7 +83,7 @@ def main():
             )
         else:
             exit("自动登录：未设置账号密码，退出")
-        if not phonenum.isdigit:
+        if not phonenum.isdigit():
             exit("自动登录：手机号设置错误，退出")
         else:
             print(phonenum, password)

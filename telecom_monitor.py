@@ -107,29 +107,53 @@ def main():
     else:
         auto_login()
 
-    # 获取信息
-    data = telecom.do_query()
-    if data["responseData"]:
-        print(f"获取信息：成功")
-    elif data["headerInfos"]["code"] == "X201":
-        print(f"获取信息：失败 {data['headerInfos']['reason']}")
+    # 获取主要信息
+    important_data = telecom.qry_important_data()
+    if important_data["responseData"]:
+        print(f"获取主要信息：成功")
+    elif important_data["headerInfos"]["code"] == "X201":
+        print(f"获取主要信息：失败 {important_data['headerInfos']['reason']}")
         auto_login()
-        data = telecom.do_query()
+        important_data = telecom.qry_important_data()
 
-    # 提取简化信息
-    summary = telecom.to_summary(data["responseData"]["data"])
+    # 简化主要信息
+    summary = telecom.to_summary(important_data["responseData"]["data"])
     if summary:
-        print("简化信息：", summary)
+        print("简化主要信息：", summary)
         CONFIG_DATA["summary"] = summary
 
+    # 获取流量包明细
+    flux_package_str = ""
+    user_flux_package = telecom.user_flux_package()
+    if user_flux_package:
+        print("获取流量包明细：成功")
+        packages = user_flux_package["responseData"]["data"]["productOFFRatable"][
+            "ratableResourcePackages"
+        ]
+        for package in packages:
+            package_icon = (
+                "🇨🇳"
+                if "国内" in package["title"]
+                else "📺" if "专用" in package["title"] else "🌎"
+            )
+            flux_package_str += f"\n{package_icon}{package['title']}\n"
+            for product in package["productInfos"]:
+                flux_package_str += f"""🔹[{product['title']}]{product['leftTitle']}{product['leftHighlight']}{product['rightCommon']}\n"""
+
+    # 添加通知
     add_notify(
         f"""
 📱 手机：{summary['phonenum']}
 💰 余额：{summary['balance']}
 📞 通话：{summary['voiceUsage']} / {summary['voiceTotal']} min
-🌐 流量
+🌐 总流量
   - 通用：{telecom.convert_flow(summary['generalUse'],"GB",2)} / {telecom.convert_flow(summary['generalTotal'],"GB",2)} GB
   - 专用：{telecom.convert_flow(summary['specialUse'],"GB",2)} / {telecom.convert_flow(summary['specialTotal'],"GB",2)} GB
+
+【流量包明细】
+
+{flux_package_str.strip()}
+
 查询时间：{summary['createTime']}
 """.strip()
     )

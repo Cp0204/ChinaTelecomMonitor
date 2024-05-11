@@ -94,7 +94,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         else:
             return {}
 
-    def do_query(self, token=""):
+    def qry_important_data(self, token=""):
         token = token or self.login_info["token"]
         provinceCode = self.login_info["provinceCode"] or "600101"
         cityCode = self.login_info["cityCode"] or "8441900"
@@ -136,7 +136,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         data = response.json()
         return data
 
-    def product(self, token=""):
+    def user_flux_package(self, token=""):
         token = token or self.login_info["token"]
         ts = datetime.now().strftime("%Y%m%d%H%M00")
         body = {

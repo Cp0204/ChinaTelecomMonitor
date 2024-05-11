@@ -126,10 +126,10 @@ def main():
         f"""
 📱 手机：{summary['phonenum']}
 💰 余额：{summary['balance']}
-📞 通话：{summary['voiceUsage']}/{summary['voiceTotal']}min
+📞 通话：{summary['voiceUsage']} / {summary['voiceTotal']} min
 🌐 流量
-  - 通用：{telecom.convert_flow(summary['generalUse'],"GB")}/{telecom.convert_flow(summary['generalTotal'],"GB")}GB
-  - 专用：{telecom.convert_flow(summary['specialUse'],"GB")}/{telecom.convert_flow(summary['specialTotal'],"GB")}GB
+  - 通用：{telecom.convert_flow(summary['generalUse'],"GB",2)} / {telecom.convert_flow(summary['generalTotal'],"GB",2)} GB
+  - 专用：{telecom.convert_flow(summary['specialUse'],"GB",2)} / {telecom.convert_flow(summary['specialTotal'],"GB",2)} GB
 """.strip()
     )
 

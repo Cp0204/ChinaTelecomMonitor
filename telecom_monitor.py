@@ -130,6 +130,7 @@ def main():
 🌐 流量
   - 通用：{telecom.convert_flow(summary['generalUse'],"GB",2)} / {telecom.convert_flow(summary['generalTotal'],"GB",2)} GB
   - 专用：{telecom.convert_flow(summary['specialUse'],"GB",2)} / {telecom.convert_flow(summary['specialTotal'],"GB",2)} GB
+查询时间：{summary['createTime']}
 """.strip()
     )
 

@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+# _*_ coding:utf-8 _*_
+
+import os
+import sys
+import json
+from datetime import datetime
+from flask import Flask, request, jsonify
+
+# 导入父目录的依赖
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+from telecom_class import Telecom
+
+telecom = Telecom()
+
+app = Flask(__name__)
+app.json.ensure_ascii = False
+app.json.sort_keys = False
+
+# 登录信息存储文件
+LOGIN_INFO_FILE = os.environ.get("CONFIG_PATH", "./config/login_info.json")
+
+
+def load_login_info():
+    """加载本地登录信息"""
+    try:
+        with open(LOGIN_INFO_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+
+def save_login_info(login_info):
+    """保存登录信息到本地"""
+    with open(LOGIN_INFO_FILE, "w", encoding="utf-8") as f:
+        json.dump(login_info, f, ensure_ascii=False, indent=2)
+
+
+@app.route("/login", methods=["POST", "GET"])
+def login():
+    """登录接口"""
+    if request.method == "POST":
+        data = request.get_json() or {}
+    else:
+        data = request.args
+    phonenum = data.get("phonenum")
+    password = data.get("password")
+    if not phonenum or not password:
+        return jsonify({"message": "手机号和密码不能为空"}), 400
+    elif whitelist_num := os.environ.get("WHITELIST_NUM"):
+        if not phonenum in whitelist_num:
+            return jsonify({"message": "手机号不在白名单"}), 400
+
+    login_info = load_login_info()
+    data = telecom.do_login(phonenum, password)
+    if data.get("responseData").get("resultCode") == "0000":
+        login_info[phonenum] = data["responseData"]["data"]["loginSuccessResult"]
+        login_info[phonenum]["password"] = password
+        login_info[phonenum]["createTime"] = datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        save_login_info(login_info)
+        return jsonify(data), 200
+    else:
+        return jsonify({"message": "登录失败"}), 400
+
+
+def query_data(query_func):
+    """
+    查询数据，如果本地没有登录信息或密码不匹配，则尝试登录后再查询
+    """
+    if request.method == "POST":
+        data = request.get_json() or {}
+    else:
+        data = request.args
+    phonenum = data.get("phonenum")
+    password = data.get("password")
+
+    login_info = load_login_info()
+    if phonenum in login_info and login_info[phonenum]["password"] == password:
+        telecom.set_login_info(login_info[phonenum])
+        data = query_func()
+        if data:
+            return jsonify(data), 200
+    # 重新登录
+    login_data, status_code = login()
+    if status_code == 200:
+        telecom.set_login_info(
+            json.loads(login_data.data)["responseData"]["data"]["loginSuccessResult"]
+        )
+        data = query_func()
+        if data:
+            return jsonify(data), 200
+        else:
+            return jsonify({"message": "查询失败"}), 400
+    else:
+        return jsonify({"message": "手机号或密码错误"}), 400
+
+
+@app.route("/qryImportantData", methods=["POST", "GET"])
+def qry_important_data():
+    """查询重要数据接口"""
+    return query_data(telecom.qry_important_data)
+
+
+@app.route("/userFluxPackage", methods=["POST", "GET"])
+def user_flux_package():
+    """查询流量包接口"""
+    return query_data(telecom.user_flux_package)
+
+
+if __name__ == "__main__":
+    app.run(debug=os.environ.get("DEBUG", False), host="0.0.0.0", port=10000)

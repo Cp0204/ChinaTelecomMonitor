@@ -111,7 +111,7 @@ def main():
 
     # 获取主要信息
     important_data = telecom.qry_important_data()
-    if important_data["responseData"]:
+    if important_data.get("responseData"):
         print(f"获取主要信息：成功")
     elif important_data["headerInfos"]["code"] == "X201":
         print(f"获取主要信息：失败 {important_data['headerInfos']['reason']}")

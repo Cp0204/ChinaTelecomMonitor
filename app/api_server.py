@@ -82,7 +82,7 @@ def query_data(query_func):
     if phonenum in login_info and login_info[phonenum]["password"] == password:
         telecom.set_login_info(login_info[phonenum])
         data = query_func()
-        if data:
+        if data.get("responseData"):
             return jsonify(data), 200
     # 重新登录
     login_data, status_code = login()
@@ -109,6 +109,18 @@ def qry_important_data():
 def user_flux_package():
     """查询流量包接口"""
     return query_data(telecom.user_flux_package)
+
+
+@app.route("/summary", methods=["POST", "GET"])
+def summary():
+    """查询流量包接口"""
+    important_data, status_code = query_data(telecom.qry_important_data)
+    print(important_data.data)
+    if status_code == 200:
+        data = telecom.to_summary(
+            json.loads(important_data.data)["responseData"]["data"]
+        )
+        return jsonify(data), 200
 
 
 if __name__ == "__main__":

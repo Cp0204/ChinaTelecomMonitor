@@ -59,6 +59,9 @@ docker run -d \
 
   返回流量包明细
 
+- `http://127.0.0.1:10000/qryShareUsage`
+
+  返回共享套餐各号码用量
 
 - `http://127.0.0.1:10000/summary`
 

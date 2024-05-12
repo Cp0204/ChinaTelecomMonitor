@@ -10,19 +10,30 @@ from Crypto.Cipher import PKCS1_v1_5
 
 class Telecom:
     def __init__(self):
-        self.login_info = None
+        self.login_info = {}
         self.phonenum = None
         self.password = None
+        self.token = None
+        self.client_type = "#9.6.1#channel50#iPhone 14 Pro#"
+        self.headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json; charset=UTF-8",
+            "Connection": "Keep-Alive",
+            "Accept-Encoding": "gzip",
+            "user-agent": "iPhone 14 Pro/9.6.1",
+        }
 
     def set_login_info(self, login_info):
         self.login_info = login_info
         self.phonenum = login_info.get("phoneNbr", None)
         self.password = login_info.get("password", None)
+        self.token = login_info.get("token", None)
 
-    def trans_phone(self, phone_num):
+    def trans_phone(self, phonenum):
         result = ""
-        for char in phone_num:
-            result += chr(ord(char) + 2 & 65535)
+        caesar_size = 2 if phonenum.startswith("1") else -2
+        for char in phonenum:
+            result += chr(ord(char) + caesar_size & 65535)
         return result
 
     def encrypt(self, str):
@@ -50,7 +61,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         phonenum = phonenum or self.phonenum
         password = password or self.password
         ts = datetime.now().strftime("%Y%m%d%H%M00")
-        enc = f"iPhone 14 13.2.3{phonenum}{phonenum}{ts}{password}0$$$0."
+        enc_str = f"iPhone 14 13.2.3{phonenum}{phonenum}{ts}{password}0$$$0."
         body = {
             "content": {
                 "fieldData": {
@@ -58,7 +69,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                     "authentication": password,
                     "deviceUid": f"3{phonenum}",
                     "isChinatelecom": "0",
-                    "loginAuthCipherAsymmertric": self.encrypt(enc),
+                    "loginAuthCipherAsymmertric": self.encrypt(enc_str),
                     "loginType": "4",
                     "phoneNum": self.trans_phone(phonenum),
                     "systemVersion": "13.2.3",
@@ -66,40 +77,30 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "attach": "iPhone",
             },
             "headerInfos": {
-                "clientType": "#9.6.1#channel50#iPhone 14 Pro#",
                 "code": "userLoginNormal",
+                "clientType": self.client_type,
+                "timestamp": ts,
                 "shopId": "20002",
                 "source": "110003",
                 "sourcePassword": "Sid98s",
-                "timestamp": ts,
                 "userLoginName": phonenum,
             },
         }
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json; charset=UTF-8",
-            "Connection": "Keep-Alive",
-            "Accept-Encoding": "gzip",
-        }
         response = requests.post(
             "https://appgologin.189.cn:9031/login/client/userLoginNormal",
-            headers=headers,
+            headers=self.headers,
             json=body,
         )
-        # print(response.text)
-        data = response.json()
-        return data
+        print(response.text)
+        return response.json()
 
-    def qry_important_data(self, token=""):
-        token = token or self.login_info["token"]
-        provinceCode = self.login_info["provinceCode"] or "600101"
-        cityCode = self.login_info["cityCode"] or "8441900"
+    def qry_important_data(self, **kwargs):
         ts = datetime.now().strftime("%Y%m%d%H%M00")
         body = {
             "content": {
                 "fieldData": {
-                    "provinceCode": provinceCode,
-                    "cityCode": cityCode,
+                    "provinceCode": self.login_info["provinceCode"] or "600101",
+                    "cityCode": self.login_info["cityCode"] or "8441900",
                     "shopId": "20002",
                     "isChinatelecom": "0",
                     "account": self.trans_phone(self.phonenum),
@@ -107,33 +108,25 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "attach": "test",
             },
             "headerInfos": {
-                "clientType": "#9.6.1#channel50#iPhone X Plus#",
-                "timestamp": ts,
                 "code": "userFluxPackage",
+                "clientType": self.client_type,
+                "timestamp": ts,
                 "shopId": "20002",
                 "source": "110003",
                 "sourcePassword": "Sid98s",
-                "token": token,
                 "userLoginName": self.phonenum,
+                "token": kwargs.get("token") or self.token,
             },
-        }
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json; charset=UTF-8",
-            "Connection": "Keep-Alive",
-            "Accept-Encoding": "gzip",
         }
         response = requests.post(
             "https://appfuwu.189.cn:9021/query/qryImportantData",
-            headers=headers,
+            headers=self.headers,
             json=body,
         )
         # print(response.text)
-        data = response.json()
-        return data
+        return response.json()
 
-    def user_flux_package(self, token=""):
-        token = token or self.login_info["token"]
+    def user_flux_package(self, **kwargs):
         ts = datetime.now().strftime("%Y%m%d%H%M00")
         body = {
             "content": {
@@ -145,29 +138,62 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "attach": "test",
             },
             "headerInfos": {
-                "clientType": "#9.6.1#channel50#iPhone X Plus#",
-                "timestamp": ts,
                 "code": "userFluxPackage",
+                "clientType": self.client_type,
+                "timestamp": ts,
                 "shopId": "20002",
                 "source": "110003",
                 "sourcePassword": "Sid98s",
-                "token": token,
                 "userLoginName": self.phonenum,
+                "token": kwargs.get("token") or self.token,
             },
-        }
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json; charset=UTF-8",
-            "Connection": "Keep-Alive",
-            "Accept-Encoding": "gzip",
         }
         response = requests.post(
             "https://appfuwu.189.cn:9021/query/userFluxPackage",
-            headers=headers,
+            headers=self.headers,
             json=body,
         )
         # print(response.text)
+        return response.json()
+
+    def qry_share_usage(self, **kwargs):
+        billing_cycle = kwargs.get("billing_cycle") or datetime.now().strftime("%Y%m")
+        ts = datetime.now().strftime("%Y%m%d%H%M00")
+        body = {
+            "content": {
+                "attach": "test",
+                "fieldData": {
+                    "billingCycle": billing_cycle,
+                    "account": self.trans_phone(self.phonenum),
+                },
+            },
+            "headerInfos": {
+                "code": "qryShareUsage",
+                "clientType": self.client_type,
+                "timestamp": ts,
+                "shopId": "20002",
+                "source": "110003",
+                "sourcePassword": "Sid98s",
+                "userLoginName": self.phonenum,
+                "token": kwargs.get("token") or self.token,
+            },
+        }
+        response = requests.post(
+            "https://appfuwu.189.cn:9021/query/qryShareUsage",
+            headers=self.headers,
+            json=body,
+        )
         data = response.json()
+        # 返回的号码字段加密，需做解密转换
+        if data.get("responseData").get("data").get("sharePhoneBeans"):
+            for item in data["responseData"]["data"]["sharePhoneBeans"]:
+                item["sharePhoneNum"] = self.trans_phone(item["sharePhoneNum"])
+            for share_type in data["responseData"]["data"]["shareTypeBeans"]:
+                for share_info in share_type["shareUsageInfos"]:
+                    for share_amount in share_info["shareUsageAmounts"]:
+                        share_amount["phoneNum"] = self.trans_phone(
+                            share_amount["phoneNum"]
+                        )
         return data
 
     def to_summary(self, data, phonenum=""):

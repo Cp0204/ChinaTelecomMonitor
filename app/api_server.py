@@ -64,10 +64,10 @@ def login():
         save_login_info(login_info)
         return jsonify(data), 200
     else:
-        return jsonify({"message": "登录失败"}), 400
+        return jsonify(data), 400
 
 
-def query_data(query_func):
+def query_data(query_func, **kwargs):
     """
     查询数据，如果本地没有登录信息或密码不匹配，则尝试登录后再查询
     """
@@ -81,22 +81,21 @@ def query_data(query_func):
     login_info = load_login_info()
     if phonenum in login_info and login_info[phonenum]["password"] == password:
         telecom.set_login_info(login_info[phonenum])
-        data = query_func()
+        data = query_func(**kwargs)
         if data.get("responseData"):
             return jsonify(data), 200
     # 重新登录
     login_data, status_code = login()
+    login_data = json.loads(login_data.data)
     if status_code == 200:
-        telecom.set_login_info(
-            json.loads(login_data.data)["responseData"]["data"]["loginSuccessResult"]
-        )
-        data = query_func()
+        telecom.set_login_info(login_data["responseData"]["data"]["loginSuccessResult"])
+        data = query_func(**kwargs)
         if data:
             return jsonify(data), 200
         else:
-            return jsonify({"message": "查询失败"}), 400
+            return jsonify(data), 400
     else:
-        return jsonify({"message": "手机号或密码错误"}), 400
+        return jsonify(login_data), 400
 
 
 @app.route("/qryImportantData", methods=["POST", "GET"])
@@ -109,6 +108,16 @@ def qry_important_data():
 def user_flux_package():
     """查询流量包接口"""
     return query_data(telecom.user_flux_package)
+
+
+@app.route("/qryShareUsage", methods=["POST", "GET"])
+def qry_share_usage():
+    """查询共享用量接口"""
+    if request.method == "POST":
+        data = request.get_json() or {}
+    else:
+        data = request.args
+    return query_data(telecom.qry_share_usage, billing_cycle=data.get("billing_cycle"))
 
 
 @app.route("/summary", methods=["POST", "GET"])

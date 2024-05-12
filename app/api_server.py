@@ -113,7 +113,7 @@ def user_flux_package():
 
 @app.route("/summary", methods=["POST", "GET"])
 def summary():
-    """查询流量包接口"""
+    """查询重要数据简化接口"""
     important_data, status_code = query_data(telecom.qry_important_data)
     print(important_data.data)
     if status_code == 200:

@@ -179,9 +179,9 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         flow_balance = int(data["flowInfo"]["totalAmount"]["balance"])
         flow_total = flow_use + flow_balance
         # 通用流量
-        general_use = int(data["flowInfo"]["commonFlow"]["used"])
-        general_balance = int(data["flowInfo"]["commonFlow"]["balance"])
-        general_total = general_use + general_balance
+        common_use = int(data["flowInfo"]["commonFlow"]["used"])
+        common_balance = int(data["flowInfo"]["commonFlow"]["balance"])
+        common_total = common_use + common_balance
         # 专用流量
         special_use = int(data["flowInfo"]["specialAmount"]["used"])
         special_balance = int(data["flowInfo"]["specialAmount"]["balance"])
@@ -225,8 +225,8 @@ PMpq0/XKBO8lYhN/gwIDAQAB
             "voiceTotal": voice_total,
             "flowUse": flow_use,
             "flowTotal": flow_total,
-            "generalUse": general_use,
-            "generalTotal": general_total,
+            "commonUse": common_use,
+            "commonTotal": common_total,
             "specialUse": special_use,
             "specialTotal": special_total,
             "createTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

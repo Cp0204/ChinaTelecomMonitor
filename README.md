@@ -62,27 +62,27 @@ docker run -d \
 
 - `http://127.0.0.1:10000/summary`
 
-  `/qryImportantData` 的数据简化接口，非原样返回，简化后数据格式：
+  `/qryImportantData` 的数据简化接口，非原样返回，简化后返回格式：
 
 ```json
 {
   "phonenum": "18912345678", // 手机号码
-  "balance": 0,              // 账户余额（单位：分）
-  "voiceUsage": 39,          // 语音通话已使用时长（单位：分钟）
-  "voiceTotal": 2250,        // 语音通话总时长（单位：分钟）
-  "flowUse": 7366923,        // 总流量已使用量（单位：KB）
-  "flowTotal": 7366923,      // 总流量总量（单位：KB）
-  "commonUse": 7273962,     // 通用流量已使用量（单位：KB）
-  "commonTotal": 25550446,  // 通用流量总量（单位：KB）
-  "specialUse": 92961,       // 专用流量已使用量（单位：KB）
-  "specialTotal": 215265280, // 专用流量总量（单位：KB）
+  "balance": 0,              // 账户余额（分）
+  "voiceUsage": 39,          // 语音通话已使用时长（分钟）
+  "voiceTotal": 2250,        // 语音通话总时长（分钟）
+  "flowUse": 7366923,        // 总流量已使用量（KB）
+  "flowTotal": 7366923,      // 总流量总量（KB）
+  "commonUse": 7273962,      // 通用流量已使用量（KB）
+  "commonTotal": 25550446,   // 通用流量总量（KB）
+  "specialUse": 92961,       // 专用流量已使用量（KB）
+  "specialTotal": 215265280, // 专用流量总量（KB）
   "createTime": "2024-05-12 14:13:28", // 数据创建时间
   "flowItems": [             // 流量类型列表
     {
       "name": "国内通用流量(达量降速)", // 流量类型名称
-      "use": 10241024,           // 流量包已使用量（单位：KB）
-      "balance": 0,              // 流量包剩余量（单位：KB）
-      "total": 10241024          // 流量包总量（单位：KB）
+      "use": 10241024,           // 流量包已使用量（KB）
+      "balance": 0,              // 流量包剩余量（KB）
+      "total": 10241024          // 流量包总量（KB）
     },
     {
       "name": "国内通用流量(非畅享)",

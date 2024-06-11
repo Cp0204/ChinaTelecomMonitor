@@ -70,7 +70,6 @@ def main():
     telecom = Telecom()
 
     def auto_login():
-        print(f"开始自动登录")
         if TELECOM_USER := os.environ.get("TELECOM_USER"):
             phonenum, password = (
                 TELECOM_USER[:11],
@@ -86,7 +85,7 @@ def main():
         if not phonenum.isdigit():
             exit("自动登录：手机号设置错误，退出")
         else:
-            print(phonenum, password)
+            print(f"自动登录：{phonenum}")
         login_failure_count = CONFIG_DATA.get("user", {}).get("loginFailureCount", 0)
         if login_failure_count < 5:
             data = telecom.do_login(phonenum, password)
@@ -121,7 +120,7 @@ def main():
     # 简化主要信息
     summary = telecom.to_summary(important_data["responseData"]["data"])
     if summary:
-        print("简化主要信息：", summary)
+        print(f"简化主要信息：{summary}")
         CONFIG_DATA["summary"] = summary
 
     # 获取流量包明细

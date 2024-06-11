@@ -91,7 +91,6 @@ PMpq0/XKBO8lYhN/gwIDAQAB
             headers=self.headers,
             json=body,
         )
-        print(response.text)
         return response.json()
 
     def qry_important_data(self, **kwargs):

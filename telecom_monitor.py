@@ -146,7 +146,7 @@ def main():
     add_notify(
         f"""
 📱 手机：{summary['phonenum']}
-💰 余额：{summary['balance']}
+💰 余额：{round(summary['balance']/100,2)}
 📞 通话：{summary['voiceUsage']} / {summary['voiceTotal']} min
 🌐 总流量
   - 通用：{telecom.convert_flow(summary['commonUse'],"GB",2)} / {telecom.convert_flow(summary['commonTotal'],"GB",2)} GB

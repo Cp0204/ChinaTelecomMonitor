@@ -208,8 +208,8 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         common_balance = int(data["flowInfo"]["commonFlow"]["balance"])
         common_total = common_use + common_balance
         # 专用流量
-        special_use = int(data["flowInfo"]["specialAmount"]["used"])
-        special_balance = int(data["flowInfo"]["specialAmount"]["balance"])
+        special_use = int(data["flowInfo"]["specialAmount"]["used"]) if data["flowInfo"].get("specialAmount") else 0
+        special_balance = int(data["flowInfo"]["specialAmount"]["balance"])  if data["flowInfo"].get("specialAmount") else 0
         special_total = special_use + special_balance
         # 语音通话
         voice_usage = int(data["voiceInfo"]["voiceDataInfo"]["used"])

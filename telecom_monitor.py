@@ -21,7 +21,7 @@ try:
     from telecom_class import Telecom
 except:
     print("正在尝试自动安装依赖...")
-    os.system("pip3 install pycryptodome &> /dev/null")
+    os.system("pip3 install pycryptodome requests &> /dev/null")
     from telecom_class import Telecom
 
 

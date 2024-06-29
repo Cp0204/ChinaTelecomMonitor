@@ -203,13 +203,23 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         flow_use = int(data["flowInfo"]["totalAmount"]["used"])
         flow_balance = int(data["flowInfo"]["totalAmount"]["balance"])
         flow_total = flow_use + flow_balance
+        flow_over = int(data["flowInfo"]["totalAmount"]["over"])
         # 通用流量
         common_use = int(data["flowInfo"]["commonFlow"]["used"])
         common_balance = int(data["flowInfo"]["commonFlow"]["balance"])
         common_total = common_use + common_balance
+        common_over = int(data["flowInfo"]["commonFlow"]["over"])
         # 专用流量
-        special_use = int(data["flowInfo"]["specialAmount"]["used"]) if data["flowInfo"].get("specialAmount") else 0
-        special_balance = int(data["flowInfo"]["specialAmount"]["balance"])  if data["flowInfo"].get("specialAmount") else 0
+        special_use = (
+            int(data["flowInfo"]["specialAmount"]["used"])
+            if data["flowInfo"].get("specialAmount")
+            else 0
+        )
+        special_balance = (
+            int(data["flowInfo"]["specialAmount"]["balance"])
+            if data["flowInfo"].get("specialAmount")
+            else 0
+        )
         special_total = special_use + special_balance
         # 语音通话
         voice_usage = int(data["voiceInfo"]["voiceDataInfo"]["used"])
@@ -225,22 +235,23 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         for item in flow_lists:
             if "流量" not in item["title"]:
                 continue
-            item_use = (
-                self.convert_flow(item["leftTitleHh"], "KB")
-                if "已用" in item["leftTitle"]
-                else 0
-            )
-            item_balance = (
-                self.convert_flow(item["rightTitleHh"], "KB")
-                if "剩余" in item["rightTitle"]
-                else 0
-            )
+            if "已用" in item["leftTitle"]:
+                item_use = self.convert_flow(item["leftTitleHh"], "KB")
+                item_balance = self.convert_flow(item["rightTitleHh"], "KB")
+                item_total = item_use + item_balance
+            elif "超出" in item["leftTitle"]:
+                item_balance = -self.convert_flow(item["leftTitleHh"], "KB")
+                item_use = (
+                    self.convert_flow(item["rightTitleEnd"].split("/")[1], "KB")
+                    - item_balance
+                )
+                item_total = item_use + item_balance
             flowItems.append(
                 {
                     "name": item["title"],
                     "use": item_use,
                     "balance": item_balance,
-                    "total": item_use + item_balance,
+                    "total": item_total,
                 }
             )
         summary = {
@@ -250,8 +261,10 @@ PMpq0/XKBO8lYhN/gwIDAQAB
             "voiceTotal": voice_total,
             "flowUse": flow_use,
             "flowTotal": flow_total,
+            "flowOver": flow_over,
             "commonUse": common_use,
             "commonTotal": common_total,
+            "commonOver": common_over,
             "specialUse": special_use,
             "specialTotal": special_total,
             "createTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -261,6 +274,8 @@ PMpq0/XKBO8lYhN/gwIDAQAB
 
     def convert_flow(self, size_str, target_unit="KB", decimal=0):
         unit_dict = {"KB": 1024, "MB": 1024**2, "GB": 1024**3, "TB": 1024**4}
+        if not size_str:
+            return 0
         if isinstance(size_str, str):
             size, unit = float(size_str[:-2]), size_str[-2:]
         elif isinstance(size_str, (int, float)):

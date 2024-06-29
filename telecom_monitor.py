@@ -140,16 +140,25 @@ def main():
             flux_package_str += f"\n{package_icon}{package['title']}\n"
             for product in package["productInfos"]:
                 flux_package_str += f"""🔹[{product['title']}]{product['leftTitle']}{product['leftHighlight']}{product['rightCommon']}\n"""
-
+    # 流量字符串
+    common_str = (
+        f"{telecom.convert_flow(summary['commonUse'],'GB',2)} / {telecom.convert_flow(summary['commonTotal'],'GB',2)} GB 🟢"
+        if summary["flowOver"] == 0
+        else f"-{telecom.convert_flow(summary['flowOver'],'GB',2)} / {telecom.convert_flow(summary['commonTotal'],'GB',2)} GB 🔴"
+    )
+    special_str = (
+        f"{telecom.convert_flow(summary['specialUse'], 'GB', 2)} / {telecom.convert_flow(summary['specialTotal'], 'GB', 2)} GB"
+        if summary["specialTotal"] > 0
+        else ""
+    )
     # 添加通知
     add_notify(
         f"""
 📱 手机：{summary['phonenum']}
 💰 余额：{round(summary['balance']/100,2)}
-📞 通话：{summary['voiceUsage']} / {summary['voiceTotal']} min
+📞 通话：{summary['voiceUsage']}{f" / {summary['voiceTotal']}" if summary['voiceTotal']>0 else ""} min
 🌐 总流量
-  - 通用：{telecom.convert_flow(summary['commonUse'],"GB",2)} / {telecom.convert_flow(summary['commonTotal'],"GB",2)} GB
-  - 专用：{telecom.convert_flow(summary['specialUse'],"GB",2)} / {telecom.convert_flow(summary['specialTotal'],"GB",2)} GB
+  - 通用：{common_str}{f"\n  - 专用：{special_str}" if special_str else ""}
 
 【流量包明细】
 

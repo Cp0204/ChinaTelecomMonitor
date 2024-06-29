@@ -75,8 +75,10 @@ docker run -d \
   "voiceTotal": 2250,        // 语音通话总时长（分钟）
   "flowUse": 7366923,        // 总流量已使用量（KB）
   "flowTotal": 7366923,      // 总流量总量（KB）
+  "flowOver": 222222,        // 总流量超量（KB）
   "commonUse": 7273962,      // 通用流量已使用量（KB）
   "commonTotal": 25550446,   // 通用流量总量（KB）
+  "commonOver": 222222,      // 通用流量超量（KB）
   "specialUse": 92961,       // 专用流量已使用量（KB）
   "specialTotal": 215265280, // 专用流量总量（KB）
   "createTime": "2024-05-12 14:13:28", // 数据创建时间
@@ -84,7 +86,7 @@ docker run -d \
     {
       "name": "国内通用流量(达量降速)", // 流量类型名称
       "use": 10241024,           // 流量包已使用量（KB）
-      "balance": 0,              // 流量包剩余量（KB）
+      "balance": 0,              // 流量包剩余量（KB），当为负值时则是超流量
       "total": 10241024          // 流量包总量（KB）
     },
     {

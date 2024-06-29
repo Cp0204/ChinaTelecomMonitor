@@ -158,7 +158,7 @@ def main():
 💰 余额：{round(summary['balance']/100,2)}
 📞 通话：{summary['voiceUsage']}{f" / {summary['voiceTotal']}" if summary['voiceTotal']>0 else ""} min
 🌐 总流量
-  - 通用：{common_str}{f"\n  - 专用：{special_str}" if special_str else ""}
+  - 通用：{common_str}{f"{chr(10)}  - 专用：{special_str}" if special_str else ""}
 
 【流量包明细】
 

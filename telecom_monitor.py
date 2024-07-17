@@ -27,6 +27,7 @@ except:
 
 CONFIG_DATA = {}
 NOTIFYS = []
+CONFIG_PATH = sys.argv[1] if len(sys.argv) > 1 else "telecom_config.json"
 
 
 # 发送通知消息
@@ -59,12 +60,10 @@ def main():
     print(f"===============程序开始===============")
     print(f"⏰ 执行时间: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     print()
-    # 读取启动参数
-    config_path = sys.argv[1] if len(sys.argv) > 1 else "telecom_config.json"
     # 读取配置
-    if os.path.exists(config_path):
-        print(f"⚙️ 正从 {config_path} 文件中读取配置")
-        with open(config_path, "r", encoding="utf-8") as file:
+    if os.path.exists(CONFIG_PATH):
+        print(f"⚙️ 正从 {CONFIG_PATH} 文件中读取配置")
+        with open(CONFIG_PATH, "r", encoding="utf-8") as file:
             CONFIG_DATA = json.load(file)
 
     telecom = Telecom()
@@ -96,9 +95,14 @@ def main():
                 CONFIG_DATA["login_info"] = login_info
                 telecom.set_login_info(login_info)
             else:
-                CONFIG_DATA["user"]["loginFailureCount"] = login_failure_count + 1
+                login_failure_count += 1
+                CONFIG_DATA["user"]["loginFailureCount"] = login_failure_count
+                update_config()
+                add_notify(f"自动登录：记录失败{login_failure_count}次，程序退出")
+                exit()
         else:
-            print(f"自动登录：已失败{login_failure_count}次，跳过执行")
+            print(f"自动登录：记录失败{login_failure_count}次，跳过执行")
+            exit()
 
     # 读取缓存Token
     login_info = CONFIG_DATA.get("login_info", {})
@@ -175,8 +179,12 @@ def main():
         send_notify("【电信套餐用量监控】", notify_body)
         print()
 
+    update_config()
+
+
+def update_config():
     # 更新配置
-    with open(config_path, "w", encoding="utf-8") as file:
+    with open(CONFIG_PATH, "w", encoding="utf-8") as file:
         json.dump(CONFIG_DATA, file, ensure_ascii=False, indent=2)
 
 

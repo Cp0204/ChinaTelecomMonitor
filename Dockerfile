@@ -9,7 +9,7 @@ COPY . /app
 
 # 安装依赖
 RUN pip install --no-cache-dir -r requirements.txt \
-    pip install --no-cache-dir flask
+    && pip install --no-cache-dir flask
 
 # 时区
 ENV TZ="Asia/Shanghai"

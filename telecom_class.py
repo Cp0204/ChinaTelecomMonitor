@@ -14,13 +14,13 @@ class Telecom:
         self.phonenum = None
         self.password = None
         self.token = None
-        self.client_type = "#9.6.1#channel50#iPhone 14 Pro#"
+        self.client_type = "#9.7.0#channel50#iPhone 14 Pro#"
         self.headers = {
             "Accept": "application/json",
             "Content-Type": "application/json; charset=UTF-8",
             "Connection": "Keep-Alive",
             "Accept-Encoding": "gzip",
-            "user-agent": "iPhone 14 Pro/9.6.1",
+            "user-agent": "iPhone 14 Pro/9.7.0",
         }
 
     def set_login_info(self, login_info):
@@ -29,9 +29,9 @@ class Telecom:
         self.password = login_info.get("password", None)
         self.token = login_info.get("token", None)
 
-    def trans_phone(self, phonenum):
+    def trans_number(self, phonenum, encode=True):
         result = ""
-        caesar_size = 2 if phonenum.startswith("1") else -2
+        caesar_size = 2 if encode else -2
         for char in phonenum:
             result += chr(ord(char) + caesar_size & 65535)
         return result
@@ -60,21 +60,22 @@ PMpq0/XKBO8lYhN/gwIDAQAB
     def do_login(self, phonenum, password):
         phonenum = phonenum or self.phonenum
         password = password or self.password
-        ts = datetime.now().strftime("%Y%m%d%H%M00")
-        enc_str = f"iPhone 14 13.2.3{phonenum}{phonenum}{ts}{password}0$$$0."
+        uuid = "01234567890123456789"
+        ts = datetime.now().strftime("%Y%m%d%H%M%S")
+        enc_str = f"iPhone 14 13.2.{uuid[:12]}{phonenum}{ts}{password}0$$$0."
         body = {
             "content": {
                 "fieldData": {
                     "accountType": "",
-                    "authentication": password,
-                    "deviceUid": f"3{phonenum}",
+                    "authentication": self.trans_number(password),
+                    "deviceUid": uuid[:16],
                     "isChinatelecom": "0",
                     "loginAuthCipherAsymmertric": self.encrypt(enc_str),
                     "loginType": "4",
-                    "phoneNum": self.trans_phone(phonenum),
+                    "phoneNum": self.trans_number(phonenum),
                     "systemVersion": "13.2.3",
                 },
-                "attach": "iPhone",
+                "attach": "test",
             },
             "headerInfos": {
                 "code": "userLoginNormal",
@@ -102,7 +103,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                     "cityCode": self.login_info["cityCode"] or "8441900",
                     "shopId": "20002",
                     "isChinatelecom": "0",
-                    "account": self.trans_phone(self.phonenum),
+                    "account": self.trans_number(self.phonenum),
                 },
                 "attach": "test",
             },
@@ -132,7 +133,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "fieldData": {
                     "queryFlag": "0",
                     "accessAuth": "1",
-                    "account": self.trans_phone(self.phonenum),
+                    "account": self.trans_number(self.phonenum),
                 },
                 "attach": "test",
             },
@@ -163,7 +164,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "attach": "test",
                 "fieldData": {
                     "billingCycle": billing_cycle,
-                    "account": self.trans_phone(self.phonenum),
+                    "account": self.trans_number(self.phonenum),
                 },
             },
             "headerInfos": {
@@ -186,12 +187,12 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         # 返回的号码字段加密，需做解密转换
         if data.get("responseData").get("data").get("sharePhoneBeans"):
             for item in data["responseData"]["data"]["sharePhoneBeans"]:
-                item["sharePhoneNum"] = self.trans_phone(item["sharePhoneNum"])
+                item["sharePhoneNum"] = self.trans_number(item["sharePhoneNum"], False)
             for share_type in data["responseData"]["data"]["shareTypeBeans"]:
                 for share_info in share_type["shareUsageInfos"]:
                     for share_amount in share_info["shareUsageAmounts"]:
-                        share_amount["phoneNum"] = self.trans_phone(
-                            share_amount["phoneNum"]
+                        share_amount["phoneNum"] = self.trans_number(
+                            share_amount["phoneNum"], False
                         )
         return data
 

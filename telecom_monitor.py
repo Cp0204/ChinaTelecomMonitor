@@ -65,6 +65,8 @@ def main():
         print(f"⚙️ 正从 {CONFIG_PATH} 文件中读取配置")
         with open(CONFIG_PATH, "r", encoding="utf-8") as file:
             CONFIG_DATA = json.load(file)
+    if not CONFIG_DATA.get("user"):
+        CONFIG_DATA["user"] = {}
 
     telecom = Telecom()
 

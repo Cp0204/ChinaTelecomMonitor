@@ -2,6 +2,7 @@
 # _*_ coding:utf-8 _*_
 
 import base64
+import random
 import requests
 from datetime import datetime
 from Crypto.PublicKey import RSA
@@ -60,7 +61,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
     def do_login(self, phonenum, password):
         phonenum = phonenum or self.phonenum
         password = password or self.password
-        uuid = "01234567890123456789"
+        uuid = str(random.randint(1000000000000000, 9999999999999999))
         ts = datetime.now().strftime("%Y%m%d%H%M%S")
         enc_str = f"iPhone 14 13.2.{uuid[:12]}{phonenum}{ts}{password}0$$$0."
         body = {

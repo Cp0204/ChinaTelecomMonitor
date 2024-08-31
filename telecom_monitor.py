@@ -101,7 +101,7 @@ def main():
                 CONFIG_DATA["user"]["loginFailureCount"] = login_failure_count
                 update_config()
                 add_notify(f"自动登录：记录失败{login_failure_count}次，程序退出")
-                exit()
+                exit(data)
         else:
             print(f"自动登录：记录失败{login_failure_count}次，跳过执行")
             exit()

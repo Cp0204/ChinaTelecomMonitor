@@ -33,7 +33,7 @@ def print(text, *args, **kw):
 # 通知服务
 # fmt: off
 push_config = {
-    'HITOKOTO': True,                  # 启用一言（随机句子）
+    'HITOKOTO': False,                  # 启用一言（随机句子）
 
     'BARK_PUSH': '',                    # bark IP 或设备码，例：https://api.day.app/DxHcxxxxxRxxxxxxcm/
     'BARK_ARCHIVE': '',                 # bark 推送是否存档
@@ -43,7 +43,7 @@ push_config = {
     'BARK_LEVEL': '',                   # bark 推送时效性
     'BARK_URL': '',                     # bark 推送跳转URL
 
-    'CONSOLE': False,                    # 控制台输出
+    'CONSOLE': False,                   # 控制台输出
 
     'DD_BOT_SECRET': '',                # 钉钉机器人的 DD_BOT_SECRET
     'DD_BOT_TOKEN': '',                 # 钉钉机器人的 DD_BOT_TOKEN
@@ -75,6 +75,10 @@ push_config = {
     'PUSH_PLUS_TOKEN': '',              # push+ 微信推送的用户令牌
     'PUSH_PLUS_USER': '',               # push+ 微信推送的群组编码
 
+    'WE_PLUS_BOT_TOKEN': '',            # 微加机器人的用户令牌
+    'WE_PLUS_BOT_RECEIVER': '',         # 微加机器人的消息接收者
+    'WE_PLUS_BOT_VERSION': 'pro',       # 微加机器人的调用版本
+
     'QMSG_KEY': '',                     # qmsg 酱的 QMSG_KEY
     'QMSG_TYPE': '',                    # qmsg 酱的 QMSG_TYPE
 
@@ -97,11 +101,14 @@ push_config = {
 
     'SMTP_SERVER': '',                  # SMTP 发送邮件服务器，形如 smtp.exmail.qq.com:465
     'SMTP_SSL': 'false',                # SMTP 发送邮件服务器是否使用 SSL，填写 true 或 false
-    'SMTP_EMAIL': '',                   # SMTP 收发件邮箱，通知将会由自己发给自己
+    'SMTP_EMAIL': '',                   # SMTP 发件邮箱
     'SMTP_PASSWORD': '',                # SMTP 登录密码，也可能为特殊口令，视具体邮件服务商说明而定
-    'SMTP_NAME': '',                    # SMTP 收发件人姓名，可随意填写
+    'SMTP_NAME': '',                    # SMTP 发件人姓名，可随意填写
+    'SMTP_EMAIL_TO': '',                # SMTP 收件邮箱，可选，缺省时将自己发给自己，多个收件邮箱逗号间隔
+    'SMTP_NAME_TO': '',                 # SMTP 收件人姓名，可选，可随意填写，多个收件人逗号间隔，顺序与 SMTP_EMAIL_TO 保持一致
 
-    'PUSHME_KEY': '',                   # PushMe 酱的 PUSHME_KEY
+    'PUSHME_KEY': '',                   # PushMe 的 PUSHME_KEY
+    'PUSHME_URL': '',                   # PushMe 的 PUSHME_URL
 
     'CHRONOCAT_QQ': '',                 # qq号
     'CHRONOCAT_TOKEN': '',              # CHRONOCAT 的token
@@ -111,11 +118,14 @@ push_config = {
     'WEBHOOK_BODY': '',                 # 自定义通知 请求体
     'WEBHOOK_HEADERS': '',              # 自定义通知 请求头
     'WEBHOOK_METHOD': '',               # 自定义通知 请求方法
-    'WEBHOOK_CONTENT_TYPE': ''          # 自定义通知 content-type
+    'WEBHOOK_CONTENT_TYPE': '',         # 自定义通知 content-type
+
+    'NTFY_URL': '',                     # ntfy地址,如https://ntfy.sh
+    'NTFY_TOPIC': '',                   # ntfy的消息应用topic
+    'NTFY_PRIORITY':'3',                # 推送消息优先级,默认为3
 }
 # fmt: on
 
-# 首先读取 面板变量 或者 github action 运行变量
 for k in push_config:
     if os.getenv(k):
         v = os.getenv(k)
@@ -132,9 +142,9 @@ def bark(title: str, content: str) -> None:
     print("bark 服务启动")
 
     if push_config.get("BARK_PUSH").startswith("http"):
-        url = f'{push_config.get("BARK_PUSH")}/{urllib.parse.quote_plus(title)}/{urllib.parse.quote_plus(content)}'
+        url = f'{push_config.get("BARK_PUSH")}'
     else:
-        url = f'https://api.day.app/{push_config.get("BARK_PUSH")}/{urllib.parse.quote_plus(title)}/{urllib.parse.quote_plus(content)}'
+        url = f'https://api.day.app/{push_config.get("BARK_PUSH")}'
 
     bark_params = {
         "BARK_ARCHIVE": "isArchive",
@@ -144,7 +154,10 @@ def bark(title: str, content: str) -> None:
         "BARK_LEVEL": "level",
         "BARK_URL": "url",
     }
-    params = ""
+    data = {
+        "title": title,
+        "body": content,
+    }
     for pair in filter(
         lambda pairs: pairs[0].startswith("BARK_")
         and pairs[0] != "BARK_PUSH"
@@ -152,10 +165,11 @@ def bark(title: str, content: str) -> None:
         and bark_params.get(pairs[0]),
         push_config.items(),
     ):
-        params += f"{bark_params.get(pair[0])}={pair[1]}&"
-    if params:
-        url = url + "?" + params.rstrip("&")
-    response = requests.get(url).json()
+        data[bark_params.get(pair[0])] = pair[1]
+    headers = {"Content-Type": "application/json;charset=utf-8"}
+    response = requests.post(
+        url=url, data=json.dumps(data), headers=headers, timeout=15
+    ).json()
 
     if response["code"] == 200:
         print("bark 推送成功！")
@@ -290,10 +304,14 @@ def serverJ(title: str, content: str) -> None:
     print("serverJ 服务启动")
 
     data = {"text": title, "desp": content.replace("\n", "\n\n")}
-    if push_config.get("PUSH_KEY").find("SCT") != -1:
-        url = f'https://sctapi.ftqq.com/{push_config.get("PUSH_KEY")}.send'
+
+    match = re.match(r'sctp(\d+)t', push_config.get("PUSH_KEY"))
+    if match:
+        num = match.group(1)
+        url = f'https://{num}.push.ft07.com/send/{push_config.get("PUSH_KEY")}.send'
     else:
-        url = f'https://sc.ftqq.com/{push_config.get("PUSH_KEY")}.send'
+        url = f'https://sctapi.ftqq.com/{push_config.get("PUSH_KEY")}.send'
+
     response = requests.post(url, data=data).json()
 
     if response.get("errno") == 0 or response.get("code") == 0:
@@ -379,6 +397,38 @@ def pushplus_bot(title: str, content: str) -> None:
 
         else:
             print("PUSHPLUS 推送失败！")
+
+
+def weplus_bot(title: str, content: str) -> None:
+    """
+    通过 微加机器人 推送消息。
+    """
+    if not push_config.get("WE_PLUS_BOT_TOKEN"):
+        print("微加机器人 服务的 WE_PLUS_BOT_TOKEN 未设置!!\n取消推送")
+        return
+    print("微加机器人 服务启动")
+
+    template = "txt"
+    if len(content) > 800:
+        template = "html"
+
+    url = "https://www.weplusbot.com/send"
+    data = {
+        "token": push_config.get("WE_PLUS_BOT_TOKEN"),
+        "title": title,
+        "content": content,
+        "template": template,
+        "receiver": push_config.get("WE_PLUS_BOT_RECEIVER"),
+        "version": push_config.get("WE_PLUS_BOT_VERSION"),
+    }
+    body = json.dumps(data).encode(encoding="utf-8")
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(url=url, data=body, headers=headers).json()
+
+    if response["code"] == 200:
+        print("微加机器人 推送成功！")
+    else:
+        print("微加机器人 推送失败！")
 
 
 def qmsg_bot(title: str, content: str) -> None:
@@ -631,12 +681,23 @@ def smtp(title: str, content: str) -> None:
             push_config.get("SMTP_EMAIL"),
         )
     )
-    message["To"] = formataddr(
-        (
-            Header(push_config.get("SMTP_NAME"), "utf-8").encode(),
-            push_config.get("SMTP_EMAIL"),
+    if  not push_config.get("SMTP_EMAIL_TO"):
+        smtp_email_to = push_config.get("SMTP_EMAIL")
+        message["To"] = formataddr(
+            (
+                Header(push_config.get("SMTP_NAME"), "utf-8").encode(),
+                push_config.get("SMTP_EMAIL"),
+            )
         )
-    )
+    else:
+        smtp_email_to = push_config.get("SMTP_EMAIL_TO").split(",")
+        smtp_name_to = push_config.get("SMTP_NAME_TO","").split(",")
+        message["To"] = ",".join([formataddr(
+            (
+                Header(smtp_name_to[i] if len(smtp_name_to) > i else "", "utf-8").encode(),
+                email_to,
+            )
+        ) for i, email_to in enumerate(smtp_email_to)])
     message["Subject"] = Header(title, "utf-8")
 
     try:
@@ -650,7 +711,7 @@ def smtp(title: str, content: str) -> None:
         )
         smtp_server.sendmail(
             push_config.get("SMTP_EMAIL"),
-            push_config.get("SMTP_EMAIL"),
+            smtp_email_to,
             message.as_bytes(),
         )
         smtp_server.close()
@@ -668,10 +729,17 @@ def pushme(title: str, content: str) -> None:
         return
     print("PushMe 服务启动")
 
-    url = f'https://push.i-i.me/?push_key={push_config.get("PUSHME_KEY")}'
+    url = (
+        push_config.get("PUSHME_URL")
+        if push_config.get("PUSHME_URL")
+        else "https://push.i-i.me/"
+    )
     data = {
+        "push_key": push_config.get("PUSHME_KEY"),
         "title": title,
         "content": content,
+        "date": push_config.get("date") if push_config.get("date") else "",
+        "type": push_config.get("type") if push_config.get("type") else "",
     }
     response = requests.post(url, data=data)
 
@@ -729,6 +797,42 @@ def chronocat(title: str, content: str) -> None:
                 else:
                     print(f"QQ群消息:{ids}推送失败！")
 
+
+def ntfy(title: str, content: str) -> None:
+    """
+    通过 Ntfy 推送消息
+    """
+    def encode_rfc2047(text: str) -> str:
+        """将文本编码为符合 RFC 2047 标准的格式"""
+        encoded_bytes = base64.b64encode(text.encode('utf-8'))
+        encoded_str = encoded_bytes.decode('utf-8')
+        return f'=?utf-8?B?{encoded_str}?='
+
+    if not push_config.get("NTFY_TOPIC"):
+        print("ntfy 服务的 NTFY_TOPIC 未设置!!\n取消推送")
+        return
+    print("ntfy 服务启动")
+    priority = '3'
+    if not push_config.get("NTFY_PRIORITY"):
+        print("ntfy 服务的NTFY_PRIORITY 未设置!!默认设置为3")
+    else:
+        priority = push_config.get("NTFY_PRIORITY")
+
+    # 使用 RFC 2047 编码 title
+    encoded_title = encode_rfc2047(title)
+
+    data = content.encode(encoding='utf-8')
+    headers = {
+        "Title": encoded_title,  # 使用编码后的 title
+        "Priority": priority
+    }
+
+    url = push_config.get("NTFY_URL") + "/" + push_config.get("NTFY_TOPIC")
+    response = requests.post(url, data=data, headers=headers)
+    if response.status_code == 200:  # 使用 response.status_code 进行检查
+        print("Ntfy 推送成功！")
+    else:
+        print("Ntfy 推送失败！错误信息：", response.text)
 
 def parse_headers(headers):
     if not headers:
@@ -805,7 +909,9 @@ def custom_notify(title: str, content: str) -> None:
     body = parse_body(
         WEBHOOK_BODY,
         WEBHOOK_CONTENT_TYPE,
-        lambda v: v.replace("$title", title).replace("$content", content),
+        lambda v: v.replace("$title", title.replace("\n", "\\n")).replace(
+            "$content", content.replace("\n", "\\n")
+        ),
     )
     formatted_url = WEBHOOK_URL.replace(
         "$title", urllib.parse.quote_plus(title)
@@ -854,6 +960,8 @@ def add_notify_function():
         notify_function.append(chat)
     if push_config.get("PUSH_PLUS_TOKEN"):
         notify_function.append(pushplus_bot)
+    if push_config.get("WE_PLUS_BOT_TOKEN"):
+        notify_function.append(weplus_bot)
     if push_config.get("QMSG_KEY") and push_config.get("QMSG_TYPE"):
         notify_function.append(qmsg_bot)
     if push_config.get("QYWX_AM"):
@@ -886,7 +994,8 @@ def add_notify_function():
         notify_function.append(chronocat)
     if push_config.get("WEBHOOK_URL") and push_config.get("WEBHOOK_METHOD"):
         notify_function.append(custom_notify)
-
+    if push_config.get("NTFY_TOPIC"):
+        notify_function.append(ntfy)
     if not notify_function:
         print(f"无推送渠道，请检查通知变量是否正确")
     return notify_function
@@ -912,7 +1021,8 @@ def send(title: str, content: str, ignore_default_config: bool = False, **kwargs
             return
 
     hitokoto = push_config.get("HITOKOTO")
-    content += "\n\n" + one() if hitokoto else ""
+    if hitokoto and str(hitokoto).lower() != "false":
+        content += "\n\n" + one()
 
     notify_function = add_notify_function()
     ts = [

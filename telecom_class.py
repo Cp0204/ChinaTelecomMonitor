@@ -202,34 +202,34 @@ PMpq0/XKBO8lYhN/gwIDAQAB
             return {}
         phonenum = phonenum or self.phonenum
         # 总流量
-        flow_use = int(data["flowInfo"]["totalAmount"]["used"])
-        flow_balance = int(data["flowInfo"]["totalAmount"]["balance"])
+        flow_use = int(data["flowInfo"]["totalAmount"]["used"] or 0)
+        flow_balance = int(data["flowInfo"]["totalAmount"]["balance"] or 0)
         flow_total = flow_use + flow_balance
-        flow_over = int(data["flowInfo"]["totalAmount"]["over"])
+        flow_over = int(data["flowInfo"]["totalAmount"]["over"] or 0)
         # 通用流量
-        common_use = int(data["flowInfo"]["commonFlow"]["used"])
-        common_balance = int(data["flowInfo"]["commonFlow"]["balance"])
+        common_use = int(data["flowInfo"]["commonFlow"]["used"] or 0)
+        common_balance = int(data["flowInfo"]["commonFlow"]["balance"] or 0)
         common_total = common_use + common_balance
-        common_over = int(data["flowInfo"]["commonFlow"]["over"])
+        common_over = int(data["flowInfo"]["commonFlow"]["over"] or 0)
         # 专用流量
         special_use = (
-            int(data["flowInfo"]["specialAmount"]["used"])
+            int(data["flowInfo"]["specialAmount"]["used"] or 0)
             if data["flowInfo"].get("specialAmount")
             else 0
         )
         special_balance = (
-            int(data["flowInfo"]["specialAmount"]["balance"])
+            int(data["flowInfo"]["specialAmount"]["balance"] or 0)
             if data["flowInfo"].get("specialAmount")
             else 0
         )
         special_total = special_use + special_balance
         # 语音通话
-        voice_usage = int(data["voiceInfo"]["voiceDataInfo"]["used"])
-        voice_balance = int(data["voiceInfo"]["voiceDataInfo"]["balance"])
-        voice_total = int(data["voiceInfo"]["voiceDataInfo"]["total"])
+        voice_usage = int(data["voiceInfo"]["voiceDataInfo"]["used"] or 0)
+        voice_balance = int(data["voiceInfo"]["voiceDataInfo"]["balance"] or 0)
+        voice_total = int(data["voiceInfo"]["voiceDataInfo"]["total"] or 0)
         # 余额
         balance = int(
-            float(data["balanceInfo"]["indexBalanceDataInfo"]["balance"]) * 100
+            float(data["balanceInfo"]["indexBalanceDataInfo"]["balance"] or 0) * 100
         )
         # 流量包列表
         flowItems = []

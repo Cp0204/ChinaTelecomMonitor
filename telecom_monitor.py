@@ -128,7 +128,7 @@ def main():
         summary = telecom.to_summary(important_data["responseData"]["data"])
     except Exception as e:
         exit(
-            f"简化主要信息出错，提 Issue 请提供以下信息（隐私打码）：\n\n{important_data["responseData"]["data"]}\n\n{e}"
+            f"简化主要信息出错，提 Issue 请提供以下信息（隐私打码）：\n\n{important_data['responseData']['data']}\n\n{e}"
         )
     if summary:
         print(f"简化主要信息：{summary}")

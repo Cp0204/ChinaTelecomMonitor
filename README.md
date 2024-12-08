@@ -11,6 +11,10 @@
 - [x] 本地保存登录 token ，有效期内不重复登录
 - [x] Docker 独立部署 API 查询服务
 
+## 使用案例
+
+- [提供一个ios的自制UI面板](https://github.com/Cp0204/ChinaTelecomMonitor/issues/18) --- By: LRZ9712
+
 ## 部署
 
 ### 青龙监控
@@ -105,13 +109,19 @@ docker run -d \
 }
 ```
 
-接口均支持 POST 和 GET 方法，POST 时 Body 须为 json 数据，请求参数：
+接口均支持 POST 和 GET 方法，如 GET ：
 
-```json
-{
-  "phonenum": "18912345678",
-  "password": "123456"
-}
+```
+http://127.0.0.1:10000/summary?phonenum=18912345678&password=123456
+```
+
+POST 时 Body 须为 json 数据，如：
+
+```bash
+curl --request POST \
+  --url http://127.0.0.1:10000/summary \
+  --header 'Content-Type: application/json' \
+  --data '{"phonenum": "18912345678","password": "123456"}'
 ```
 
 > [!NOTE]

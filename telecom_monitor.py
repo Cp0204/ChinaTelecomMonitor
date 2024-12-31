@@ -128,7 +128,7 @@ def main():
         summary = telecom.to_summary(important_data["responseData"]["data"])
     except Exception as e:
         exit(
-            f"简化主要信息出错，提 Issue 请提供以下信息（隐私打码）：\n\n{important_data['responseData']['data']}\n\n{e}"
+            f"简化主要信息出错，提 Issue 请提供以下信息（隐私打码）：\n\n{json.dumps(important_data['responseData']['data'], ensure_ascii=False)}\n\n{e}"
         )
     if summary:
         print(f"简化主要信息：{summary}")
@@ -150,7 +150,11 @@ def main():
             )
             flux_package_str += f"\n{package_icon}{package['title']}\n"
             for product in package["productInfos"]:
-                flux_package_str += f"""🔹[{product['title']}]{product['leftTitle']}{product['leftHighlight']}{product['rightCommon']}\n"""
+                if product["infiniteTitle"]:
+                    # 无限流量
+                    flux_package_str += f"""🔹[{product['title']}]{product['infiniteTitle']}{product['infiniteValue']}{product['infiniteUnit']}/无限\n"""
+                else:
+                    flux_package_str += f"""🔹[{product['title']}]{product['leftTitle']}{product['leftHighlight']}{product['rightCommon']}\n"""
     # 流量字符串
     common_str = (
         f"{telecom.convert_flow(summary['commonUse'],'GB',2)} / {telecom.convert_flow(summary['commonTotal'],'GB',2)} GB 🟢"

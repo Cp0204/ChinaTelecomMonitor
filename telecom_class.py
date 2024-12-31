@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # _*_ coding:utf-8 _*_
 
+import re
 import base64
 import random
 import requests
@@ -237,17 +238,26 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         for item in flow_lists:
             if "流量" not in item["title"]:
                 continue
-            if "已用" in item["leftTitle"]:
+            # 常规流量
+            if "已用" in item["leftTitle"] and "剩余" in item["rightTitle"]:
                 item_use = self.convert_flow(item["leftTitleHh"], "KB")
                 item_balance = self.convert_flow(item["rightTitleHh"], "KB")
                 item_total = item_use + item_balance
-            elif "超出" in item["leftTitle"]:
+            # 常规流量，超流量
+            elif "超出" in item["leftTitle"] and "/" in item["rightTitleEnd"]:
                 item_balance = -self.convert_flow(item["leftTitleHh"], "KB")
                 item_use = (
                     self.convert_flow(item["rightTitleEnd"].split("/")[1], "KB")
                     - item_balance
                 )
                 item_total = item_use + item_balance
+            # 无限流量，达量降速
+            elif "已用" in item["leftTitle"] and "降速" in item["rightTitle"]:
+                item_total = self.convert_flow(
+                    re.search(r"(\d+[KMGT]B)", item["rightTitle"]).group(1), "KB"
+                )
+                item_use = self.convert_flow(item["leftTitleHh"], "KB")
+                item_balance = item_total - item_use
             flowItems.append(
                 {
                     "name": item["title"],

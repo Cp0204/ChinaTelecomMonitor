@@ -11,7 +11,7 @@ startup: application
 boot: auto
 homeassistant_api: false
 host_network: false
-image: "ghcr.io/cp0204/chinatelecommonitor-{arch}"
+image: "docker.io/cp0204/chinatelecommonitor-{arch}"
 ports:
   10000/tcp: 10000
 map:

@@ -18,6 +18,5 @@ map:
   - config:rw
 options:
   WHITELIST_NUM: "18912345678,13312345678"
-  TELECOM_USER: "18912345678password"
 schema:
   WHITELIST_NUM: str

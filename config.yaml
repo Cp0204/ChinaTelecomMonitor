@@ -11,12 +11,12 @@ startup: application
 boot: auto
 homeassistant_api: false
 host_network: false
-image: "cp0204/chinatelecommonitor:main"
+image: cp0204/chinatelecommonitor:main
 ports:
   10000/tcp: 10000
 map:
   - config:rw
 options:
-  telecom_user: "18912345678password"
+  WHITELIST_NUM: "18912345678password"
 schema:
-  telecom_user: str
+  WHITELIST_NUM: str

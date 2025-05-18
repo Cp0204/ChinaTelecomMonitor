@@ -1,6 +1,6 @@
 name: "China Telecom Monitor"
 description: "中国电信话费、通话、流量套餐用量监控，提供 API 服务供 Home Assistant 调用。"
-version: "1.0.0"
+version: "main"
 slug: "china_telecom_monitor"
 url: "https://github.com/hanlihanshaobo/ChinaTelecomMonitor"
 init: false

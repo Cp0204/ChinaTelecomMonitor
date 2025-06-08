@@ -82,7 +82,11 @@ def query_data(query_func, **kwargs):
     password = data.get("password")
     # 检查登录信息，避免重复登录
     login_info = load_login_info()
-    if phonenum in login_info and login_info[phonenum]["password"] == password:
+    if (
+        phonenum in login_info
+        and login_info[phonenum].get("phonenum") == phonenum
+        and login_info[phonenum].get("password") == password
+    ):
         telecom.set_login_info(login_info[phonenum])
         data = query_func(**kwargs)
         if data.get("responseData"):

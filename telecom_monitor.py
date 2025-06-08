@@ -118,7 +118,7 @@ def main():
 
     # 读取缓存Token
     login_info = CONFIG_DATA.get("login_info", {})
-    if login_info:
+    if login_info and login_info.get("phonenum"):
         print(f"尝试使用缓存登录：{login_info['phonenum']}")
         telecom.set_login_info(login_info)
     else:

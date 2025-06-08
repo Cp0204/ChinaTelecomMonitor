@@ -25,9 +25,10 @@
 ql repo https://github.com/Cp0204/ChinaTelecomMonitor.git "telecom_monitor" "" "telecom_class|notify"
 ```
 
-| 环境变量       | 示例                  | 备注                           |
-| -------------- | --------------------- | ------------------------------ |
-| `TELECOM_USER` | `18912345678password` | 手机号密码直接拼接，会自动截取 |
+| 环境变量               | 示例                  | 备注                                            |
+| ---------------------- | --------------------- | ----------------------------------------------- |
+| `TELECOM_USER`         | `18912345678password` | 手机号密码直接拼接，密码应为6位数字，会自动截取 |
+| `TELECOM_FLUX_PACKAGE` | `true` (默认)         | 推送流量包明细，`false` 则只推送基本信息        |
 
 ### Docker API 服务
 

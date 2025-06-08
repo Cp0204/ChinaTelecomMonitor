@@ -176,22 +176,22 @@ def main():
         if summary["specialTotal"] > 0
         else ""
     )
-    # 添加通知
-    add_notify(
-        f"""
+
+    # 基本信息
+    notify_str = f"""
 📱 手机：{summary['phonenum']}
 💰 余额：{round(summary['balance']/100,2)}
-📞 通话：{summary['voiceUsage']}{f" / {summary['voiceTotal']}" if summary['voiceTotal']>0 else ""} min
+📞 通话：{summary['voiceUsage']}{f' / {summary['voiceTotal']}' if summary['voiceTotal']>0 else ''} min
 🌐 总流量
-  - 通用：{common_str}{f"{chr(10)}  - 专用：{special_str}" if special_str else ""}
+  - 通用：{common_str}{f'{chr(10)}  - 专用：{special_str}' if special_str else ''}"""
 
-【流量包明细】
+    # 流量包明细
+    if os.environ.get("TELECOM_FLUX_PACKAGE", "true").lower() != "false":
+        notify_str += f"\n\n【流量包明细】\n\n{flux_package_str.strip()}"
 
-{flux_package_str.strip()}
+    notify_str += f"\n\n查询时间：{summary['createTime']}"
 
-查询时间：{summary['createTime']}
-""".strip()
-    )
+    add_notify(notify_str.strip())
 
     # 通知
     if NOTIFYS:

@@ -14,6 +14,8 @@
 ## 使用案例
 
 - [提供一个ios的自制UI面板](https://github.com/Cp0204/ChinaTelecomMonitor/issues/18) --- By: LRZ9712
+- [HomeAssistant插件集成](https://bbs.hassbian.com/thread-29129-1-1.html) [CTM电信](https://github.com/hlhk2017/ChinaTelecomMonitor-Homeassistant-Integration)  --- By: hlhk2017
+- [Homeassistant中国电信接入，视频教程](https://www.bilibili.com/video/BV1F5NLe7EUJ/) --- By: 米哟MIO
 
 ## 部署
 
@@ -25,25 +27,47 @@
 ql repo https://github.com/Cp0204/ChinaTelecomMonitor.git "telecom_monitor" "" "telecom_class|notify"
 ```
 
-| 环境变量               | 示例                  | 备注                                            |
-| ---------------------- | --------------------- | ----------------------------------------------- |
-| `TELECOM_USER`         | `18912345678password` | 手机号密码直接拼接，密码应为6位数字，会自动截取 |
-| `TELECOM_FLUX_PACKAGE` | `true` (默认)         | 推送流量包明细，`false` 则只推送基本信息        |
+| 环境变量               | 示例                  | 备注                                          |
+| ---------------------- | --------------------- | --------------------------------------------- |
+| `TELECOM_USER`         | `18912345678password` | 手机号密码直接拼接，密码为6位数字，会自动截取 |
+| `TELECOM_FLUX_PACKAGE` | `true` (默认)         | 推送流量包明细，`false` 则只推送基本信息      |
 
 ### Docker API 服务
 
-注意：Docker 部署的是 API 服务，没有监控提醒功能，主要是用于第三方（如 HomeAssistant 等）获取信息，数据原样返回。
+Docker 部署的是 API 服务，没有监控提醒功能，主要是用于第三方（如 HomeAssistant 等）获取信息，数据原样返回。
 
-```shell
+> [!WARNING]
+> **警告：** 登录成功后，会在服务器 config/login_info.json 中**记录账号包括 token 在内的敏感信息**，token 长期有效，直到在其他地方登录被挤下线，程序获取数据时会先尝试用已记录的 token 去请求，避免重复发出登录请求。**⚠️请勿使用他人部署的 API 服务，以免敏感信息外泄⚠️**
+
+部署命令：
+
+```bash
 docker run -d \
   --name china-telecom-monitor \
   -p 10000:10000 \
   -v ./china-telecom-monitor/config:/app/config \
-  -v /etc/localtime:/etc/localtime \
   -e WHITELIST_NUM= \
   --network bridge \
   --restart unless-stopped \
   cp0204/chinatelecommonitor:main
+```
+
+docker-compose.yml：
+
+```yaml
+name: china-telecom-monitor
+services:
+  china-telecom-monitor:
+    image: cp0204/chinatelecommonitor:main
+    container_name: china-telecom-monitor
+    network_mode: bridge
+    ports:
+      - 10000:10000
+    volumes:
+      - ./china-telecom-monitor/config:/app/config
+    environment:
+      - WHITELIST_NUM=
+    restart: unless-stopped
 ```
 
 | 环境变量        | 示例                      | 备注         |
@@ -54,7 +78,7 @@ docker run -d \
 
 - `http://127.0.0.1:10000/login`
 
-  登录，返回用户信息，token长期有效，用以下次请求数据
+  登录，返回用户信息；无须单独请求，请求以下接口时，如未登录会自动登录
 
 - `http://127.0.0.1:10000/qryImportantData`
 
@@ -124,9 +148,6 @@ curl --request POST \
   --header 'Content-Type: application/json' \
   --data '{"phonenum": "18912345678","password": "123456"}'
 ```
-
-> [!NOTE]
-> 登录成功后，会在 config/login_info.json 文件**记录账号敏感信息**。程序请求数据将先尝试用记录的 token 获取，避免重复登录。
 
 ## 感谢
 

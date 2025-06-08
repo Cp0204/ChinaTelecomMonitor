@@ -34,6 +34,8 @@ def load_login_info():
 
 def save_login_info(login_info):
     """保存登录信息到本地"""
+    if not os.path.exists(os.path.dirname(LOGIN_INFO_FILE)):
+        os.makedirs(os.path.dirname(LOGIN_INFO_FILE))
     with open(LOGIN_INFO_FILE, "w", encoding="utf-8") as f:
         json.dump(login_info, f, ensure_ascii=False, indent=2)
 
@@ -57,6 +59,7 @@ def login():
     data = telecom.do_login(phonenum, password)
     if data.get("responseData").get("resultCode") == "0000":
         login_info[phonenum] = data["responseData"]["data"]["loginSuccessResult"]
+        login_info[phonenum]["phonenum"] = phonenum
         login_info[phonenum]["password"] = password
         login_info[phonenum]["createTime"] = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"
@@ -77,7 +80,7 @@ def query_data(query_func, **kwargs):
         data = request.args
     phonenum = data.get("phonenum")
     password = data.get("password")
-
+    # 检查登录信息，避免重复登录
     login_info = load_login_info()
     if phonenum in login_info and login_info[phonenum]["password"] == password:
         telecom.set_login_info(login_info[phonenum])
@@ -90,7 +93,7 @@ def query_data(query_func, **kwargs):
     if status_code == 200:
         telecom.set_login_info(login_data["responseData"]["data"]["loginSuccessResult"])
         data = query_func(**kwargs)
-        if data:
+        if data.get("responseData"):
             return jsonify(data), 200
         else:
             return jsonify(data), 400
@@ -133,4 +136,4 @@ def summary():
 
 
 if __name__ == "__main__":
-    app.run(debug=os.environ.get("DEBUG", False), host="0.0.0.0", port=10000)
+    app.run(debug=os.environ.get("DEBUG", True), host="0.0.0.0", port=10000)

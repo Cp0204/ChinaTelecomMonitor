@@ -16,18 +16,18 @@ class Telecom:
         self.phonenum = None
         self.password = None
         self.token = None
-        self.client_type = "#9.7.0#channel50#iPhone 14 Pro#"
+        self.client_type = "#12.2.0#channel50#iPhone 14 Pro#"
         self.headers = {
             "Accept": "application/json",
             "Content-Type": "application/json; charset=UTF-8",
             "Connection": "Keep-Alive",
             "Accept-Encoding": "gzip",
-            "user-agent": "iPhone 14 Pro/9.7.0",
+            "user-agent": "P216010901",
         }
 
     def set_login_info(self, login_info):
         self.login_info = login_info
-        self.phonenum = login_info.get("phoneNbr", None)
+        self.phonenum = login_info.get("phonenum", None)
         self.password = login_info.get("password", None)
         self.token = login_info.get("token", None)
 
@@ -86,7 +86,8 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "shopId": "20002",
                 "source": "110003",
                 "sourcePassword": "Sid98s",
-                "userLoginName": phonenum,
+                "token": "",
+                "userLoginName": self.trans_number(phonenum),
             },
         }
         response = requests.post(
@@ -116,7 +117,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "shopId": "20002",
                 "source": "110003",
                 "sourcePassword": "Sid98s",
-                "userLoginName": self.phonenum,
+                "userLoginName": self.trans_number(self.phonenum),
                 "token": kwargs.get("token") or self.token,
             },
         }
@@ -146,7 +147,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "shopId": "20002",
                 "source": "110003",
                 "sourcePassword": "Sid98s",
-                "userLoginName": self.phonenum,
+                "userLoginName": self.trans_number(self.phonenum),
                 "token": kwargs.get("token") or self.token,
             },
         }
@@ -176,7 +177,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "shopId": "20002",
                 "source": "110003",
                 "sourcePassword": "Sid98s",
-                "userLoginName": self.phonenum,
+                "userLoginName": self.trans_number(self.phonenum),
                 "token": kwargs.get("token") or self.token,
             },
         }
@@ -187,7 +188,9 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         )
         data = response.json()
         # 返回的号码字段加密，需做解密转换
-        if data.get("responseData").get("data").get("sharePhoneBeans"):
+        if data.get("responseData") and data.get("responseData").get("data", {}).get(
+            "sharePhoneBeans", []
+        ):
             for item in data["responseData"]["data"]["sharePhoneBeans"]:
                 item["sharePhoneNum"] = self.trans_number(item["sharePhoneNum"], False)
             for share_type in data["responseData"]["data"]["shareTypeBeans"]:

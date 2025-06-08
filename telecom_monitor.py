@@ -87,29 +87,39 @@ def main():
             exit("自动登录：手机号设置错误，退出")
         else:
             print(f"自动登录：{phonenum}")
-        login_failure_count = CONFIG_DATA.get("user", {}).get("loginFailureCount", 0)
-        if login_failure_count < 5:
+        # 记录登录失败次数，避免风控
+        login_fail_time = CONFIG_DATA.get("loginFailTime", 0)
+        if login_fail_time < 5:
             data = telecom.do_login(phonenum, password)
             if data.get("responseData").get("resultCode") == "0000":
                 print(f"自动登录：成功")
                 login_info = data["responseData"]["data"]["loginSuccessResult"]
+                login_info["phonenum"] = phonenum
                 login_info["createTime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 CONFIG_DATA["login_info"] = login_info
+                CONFIG_DATA["loginFailTime"] = 0
                 telecom.set_login_info(login_info)
             else:
-                login_failure_count += 1
-                CONFIG_DATA["user"]["loginFailureCount"] = login_failure_count
+                login_fail_time = (
+                    data.get("responseData", {})
+                    .get("data", {})
+                    .get("loginFailResult", {})
+                    .get("loginFailTime", login_fail_time + 1)
+                )
+                CONFIG_DATA["loginFailTime"] = login_fail_time
                 update_config()
-                add_notify(f"自动登录：记录失败{login_failure_count}次，程序退出")
+                add_notify(f"自动登录：已连续失败{login_fail_time}次，程序退出")
                 exit(data)
         else:
-            print(f"自动登录：记录失败{login_failure_count}次，跳过执行")
+            print(
+                f"自动登录：已连续失败{login_fail_time}次，为避免风控不再执行；修正登录信息后，如需重新登录请删除程序目录下(.json)配置中的 loginFailTime 键值"
+            )
             exit()
 
     # 读取缓存Token
     login_info = CONFIG_DATA.get("login_info", {})
     if login_info:
-        print(f"尝试使用缓存登录：{login_info['phoneNbr']}")
+        print(f"尝试使用缓存登录：{login_info['phonenum']}")
         telecom.set_login_info(login_info)
     else:
         auto_login()

@@ -71,7 +71,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                     "accountType": "",
                     "authentication": self.trans_number(password),
                     "deviceUid": uuid[:16],
-                    "isChinatelecom": "0",
+                    "isChinatelecom": "",
                     "loginAuthCipherAsymmertric": self.encrypt(enc_str),
                     "loginType": "4",
                     "phoneNum": self.trans_number(phonenum),
@@ -126,7 +126,6 @@ PMpq0/XKBO8lYhN/gwIDAQAB
             headers=self.headers,
             json=body,
         )
-        # print(response.text)
         return response.json()
 
     def user_flux_package(self, **kwargs):
@@ -156,7 +155,6 @@ PMpq0/XKBO8lYhN/gwIDAQAB
             headers=self.headers,
             json=body,
         )
-        # print(response.text)
         return response.json()
 
     def qry_share_usage(self, **kwargs):

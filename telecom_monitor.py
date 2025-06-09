@@ -38,7 +38,7 @@ def send_notify(title, body):
 
         # 如未配置 push_config 则使用青龙环境通知设置
         if CONFIG_DATA.get("push_config"):
-            notify.push_config = CONFIG_DATA["push_config"].copy()
+            notify.push_config.update(CONFIG_DATA["push_config"])
             notify.push_config["CONSOLE"] = notify.push_config.get("CONSOLE", True)
         notify.send(title, body)
     except Exception as e:
@@ -181,7 +181,7 @@ def main():
     notify_str = f"""
 📱 手机：{summary['phonenum']}
 💰 余额：{round(summary['balance']/100,2)}
-📞 通话：{summary['voiceUsage']}{f' / {summary['voiceTotal']}' if summary['voiceTotal']>0 else ''} min
+📞 通话：{summary['voiceUsage']}{f" / {summary['voiceTotal']}" if summary['voiceTotal']>0 else ''} min
 🌐 总流量
   - 通用：{common_str}{f'{chr(10)}  - 专用：{special_str}' if special_str else ''}"""
 

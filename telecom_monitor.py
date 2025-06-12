@@ -100,7 +100,7 @@ def main():
                 CONFIG_DATA["loginFailTime"] = 0
                 telecom.set_login_info(login_info)
             else:
-                login_fail_time = (
+                login_fail_time = int(
                     data.get("responseData", {})
                     .get("data", {})
                     .get("loginFailResult", {})

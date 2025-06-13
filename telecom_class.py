@@ -259,6 +259,9 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 )
                 item_use = self.convert_flow(item["leftTitleHh"], "KB")
                 item_balance = item_total - item_use
+            # 忽略其他不能识别的情形
+            else:
+                continue
             flowItems.append(
                 {
                     "name": item["title"],

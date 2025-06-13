@@ -261,6 +261,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 item_balance = item_total - item_use
             # 忽略其他不能识别的情形
             else:
+                print(f"Ignore flow: {item}")
                 continue
             flowItems.append(
                 {

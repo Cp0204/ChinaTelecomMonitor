@@ -204,26 +204,21 @@ PMpq0/XKBO8lYhN/gwIDAQAB
             return {}
         phonenum = phonenum or self.phonenum
         # 总流量
-        flow_use = int(data["flowInfo"]["totalAmount"]["used"] or 0)
-        flow_balance = int(data["flowInfo"]["totalAmount"]["balance"] or 0)
+        total_amount = data["flowInfo"].get("totalAmount") or {}
+        flow_use = int(total_amount.get("used") or 0)
+        flow_balance = int(total_amount.get("balance") or 0)
         flow_total = flow_use + flow_balance
-        flow_over = int(data["flowInfo"]["totalAmount"]["over"] or 0)
+        flow_over = int(total_amount.get("over") or 0)
         # 通用流量
-        common_use = int(data["flowInfo"]["commonFlow"]["used"] or 0)
-        common_balance = int(data["flowInfo"]["commonFlow"]["balance"] or 0)
+        common_flow = data["flowInfo"].get("commonFlow") or {}
+        common_use = int(common_flow.get("used", 0))
+        common_balance = int(common_flow.get("balance", 0))
         common_total = common_use + common_balance
-        common_over = int(data["flowInfo"]["commonFlow"]["over"] or 0)
+        common_over = int(common_flow.get("over", 0))
         # 专用流量
-        special_use = (
-            int(data["flowInfo"]["specialAmount"]["used"] or 0)
-            if data["flowInfo"].get("specialAmount")
-            else 0
-        )
-        special_balance = (
-            int(data["flowInfo"]["specialAmount"]["balance"] or 0)
-            if data["flowInfo"].get("specialAmount")
-            else 0
-        )
+        special_amount = data["flowInfo"].get("specialAmount") or {}
+        special_use = int(special_amount.get("used", 0))
+        special_balance = int(special_amount.get("balance", 0))
         special_total = special_use + special_balance
         # 语音通话
         voice_usage = int(data["voiceInfo"]["voiceDataInfo"]["used"] or 0)

@@ -270,6 +270,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
             "phonenum": phonenum,
             "balance": balance,
             "voiceUsage": voice_usage,
+            "voiceBalance": voice_balance,
             "voiceTotal": voice_total,
             "flowUse": flow_use,
             "flowTotal": flow_total,

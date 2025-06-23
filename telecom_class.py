@@ -211,14 +211,14 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         flow_over = int(total_amount.get("over") or 0)
         # 通用流量
         common_flow = data["flowInfo"].get("commonFlow") or {}
-        common_use = int(common_flow.get("used", 0))
-        common_balance = int(common_flow.get("balance", 0))
+        common_use = int(common_flow.get("used") or 0)
+        common_balance = int(common_flow.get("balance") or 0)
         common_total = common_use + common_balance
-        common_over = int(common_flow.get("over", 0))
+        common_over = int(common_flow.get("over") or 0)
         # 专用流量
         special_amount = data["flowInfo"].get("specialAmount") or {}
-        special_use = int(special_amount.get("used", 0))
-        special_balance = int(special_amount.get("balance", 0))
+        special_use = int(special_amount.get("used") or 0)
+        special_balance = int(special_amount.get("balance") or 0)
         special_total = special_use + special_balance
         # 语音通话
         voice_usage = int(data["voiceInfo"]["voiceDataInfo"]["used"] or 0)

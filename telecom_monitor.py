@@ -14,7 +14,8 @@ cron: 0 20 * * *
 import os
 import sys
 import json
-from datetime import datetime
+import datetime
+import calendar
 
 # 兼容青龙
 try:
@@ -54,9 +55,28 @@ def add_notify(text):
     return text
 
 
+def usage_status_icon(used, total):
+    """流量使用状态图标"""
+    if total <= 0:
+        return "⚫"  # 无流量
+    if used >= total:
+        return "🔴"  # 超流量
+    # 未超提示进度
+    today = datetime.date.today()
+    _, days_in_month = calendar.monthrange(today.year, today.month)
+    time_progress = today.day / days_in_month
+    usage_progress = used / total
+    if usage_progress > time_progress * 1.5:
+        return "🟠"  # 已超过均匀用量50%
+    elif usage_progress > time_progress:
+        return "🟡"  # 已超过均匀用量
+    else:
+        return "🟢"  # 均匀使用范围内
+
+
 def main():
     global CONFIG_DATA
-    start_time = datetime.now()
+    start_time = datetime.datetime.now()
     print(f"===============程序开始===============")
     print(f"⏰ 执行时间: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     print()
@@ -95,7 +115,9 @@ def main():
                 print(f"自动登录：成功")
                 login_info = data["responseData"]["data"]["loginSuccessResult"]
                 login_info["phonenum"] = phonenum
-                login_info["createTime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                login_info["createTime"] = datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
                 CONFIG_DATA["login_info"] = login_info
                 CONFIG_DATA["loginFailTime"] = 0
                 telecom.set_login_info(login_info)
@@ -167,9 +189,12 @@ def main():
                     flux_package_str += f"""🔹[{product['title']}]{product['leftTitle']}{product['leftHighlight']}{product['rightCommon']}\n"""
     # 流量字符串
     common_str = (
-        f"{telecom.convert_flow(summary['commonUse'],'GB',2)} / {telecom.convert_flow(summary['commonTotal'],'GB',2)} GB 🟢"
+        f"{telecom.convert_flow(summary['commonUse'],'GB',2)} / {telecom.convert_flow(summary['commonTotal'],'GB',2)} GB"
         if summary["flowOver"] == 0
-        else f"-{telecom.convert_flow(summary['flowOver'],'GB',2)} / {telecom.convert_flow(summary['commonTotal'],'GB',2)} GB 🔴"
+        else f"-{telecom.convert_flow(summary['flowOver'],'GB',2)} / {telecom.convert_flow(summary['commonTotal'],'GB',2)} GB"
+    )
+    common_str = (
+        f"{common_str} {usage_status_icon(summary['commonUse'],summary['commonTotal'])}"
     )
     special_str = (
         f"{telecom.convert_flow(summary['specialUse'], 'GB', 2)} / {telecom.convert_flow(summary['specialTotal'], 'GB', 2)} GB"

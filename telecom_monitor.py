@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Repo: https://github.com/Cp0204/ChinaTelecomMonitor
 # ConfigFile: telecom_config.json
-# Modify: 2024-05-11
+# Modify: 2025-07-08
 
 """
 任务名称
@@ -29,6 +29,7 @@ except:
 CONFIG_DATA = {}
 NOTIFYS = []
 CONFIG_PATH = sys.argv[1] if len(sys.argv) > 1 else "telecom_config.json"
+TELECOM_FLUX_PACKAGE = os.environ.get("TELECOM_FLUX_PACKAGE", "true").lower() != "false"
 
 
 # 发送通知消息
@@ -167,26 +168,28 @@ def main():
         CONFIG_DATA["summary"] = summary
 
     # 获取流量包明细
-    flux_package_str = ""
-    user_flux_package = telecom.user_flux_package()
-    if user_flux_package:
-        print("获取流量包明细：成功")
-        packages = user_flux_package["responseData"]["data"]["productOFFRatable"][
-            "ratableResourcePackages"
-        ]
-        for package in packages:
-            package_icon = (
-                "🇨🇳"
-                if "国内" in package["title"]
-                else "📺" if "专用" in package["title"] else "🌎"
-            )
-            flux_package_str += f"\n{package_icon}{package['title']}\n"
-            for product in package["productInfos"]:
-                if product["infiniteTitle"]:
-                    # 无限流量
-                    flux_package_str += f"""🔹[{product['title']}]{product['infiniteTitle']}{product['infiniteValue']}{product['infiniteUnit']}/无限\n"""
-                else:
-                    flux_package_str += f"""🔹[{product['title']}]{product['leftTitle']}{product['leftHighlight']}{product['rightCommon']}\n"""
+    if TELECOM_FLUX_PACKAGE:
+        flux_package_str = ""
+        user_flux_package = telecom.user_flux_package()
+        if user_flux_package:
+            print("获取流量包明细：成功")
+            packages = user_flux_package["responseData"]["data"]["productOFFRatable"][
+                "ratableResourcePackages"
+            ]
+            for package in packages:
+                package_icon = (
+                    "🇨🇳"
+                    if "国内" in package["title"]
+                    else "📺" if "专用" in package["title"] else "🌎"
+                )
+                flux_package_str += f"\n{package_icon}{package['title']}\n"
+                for product in package["productInfos"]:
+                    if product["infiniteTitle"]:
+                        # 无限流量
+                        flux_package_str += f"""🔹[{product['title']}]{product['infiniteTitle']}{product['infiniteValue']}{product['infiniteUnit']}/无限\n"""
+                    else:
+                        flux_package_str += f"""🔹[{product['title']}]{product['leftTitle']}{product['leftHighlight']}{product['rightCommon']}\n"""
+
     # 流量字符串
     common_str = (
         f"{telecom.convert_flow(summary['commonUse'],'GB',2)} / {telecom.convert_flow(summary['commonTotal'],'GB',2)} GB"
@@ -211,7 +214,7 @@ def main():
   - 通用：{common_str}{f'{chr(10)}  - 专用：{special_str}' if special_str else ''}"""
 
     # 流量包明细
-    if os.environ.get("TELECOM_FLUX_PACKAGE", "true").lower() != "false":
+    if TELECOM_FLUX_PACKAGE:
         notify_str += f"\n\n【流量包明细】\n\n{flux_package_str.strip()}"
 
     notify_str += f"\n\n查询时间：{summary['createTime']}"

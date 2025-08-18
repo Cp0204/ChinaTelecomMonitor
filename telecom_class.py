@@ -4,10 +4,29 @@
 import re
 import base64
 import random
+import certifi
 import requests
 from datetime import datetime
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
+from requests.adapters import HTTPAdapter
+from urllib3.util.ssl_ import create_urllib3_context
+
+
+class TelecomSSLAdapter(HTTPAdapter):
+    """自定义适配器解决SSL证书问题"""
+
+    def __init__(self):
+        self.ssl_context = None
+        super().__init__()
+
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        if self.ssl_context is None:
+            self.ssl_context = create_urllib3_context()
+            self.ssl_context.set_ciphers("DEFAULT:@SECLEVEL=1")
+            self.ssl_context.load_verify_locations(cafile=certifi.where())
+        pool_kwargs["ssl_context"] = self.ssl_context
+        return super().init_poolmanager(connections, maxsize, block, **pool_kwargs)
 
 
 class Telecom:
@@ -24,6 +43,11 @@ class Telecom:
             "Accept-Encoding": "gzip",
             "user-agent": "P216010901",
         }
+        # 创建会话并使用自定义适配器
+        self.session = requests.Session()
+        adapter = TelecomSSLAdapter()
+        self.session.mount("https://", adapter)
+        self.session.verify = certifi.where()
 
     def set_login_info(self, login_info):
         self.login_info = login_info
@@ -90,7 +114,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "userLoginName": self.trans_number(phonenum),
             },
         }
-        response = requests.post(
+        response = self.session.post(
             "https://appgologin.189.cn:9031/login/client/userLoginNormal",
             headers=self.headers,
             json=body,
@@ -121,7 +145,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "token": kwargs.get("token") or self.token,
             },
         }
-        response = requests.post(
+        response = self.session.post(
             "https://appfuwu.189.cn:9021/query/qryImportantData",
             headers=self.headers,
             json=body,
@@ -150,7 +174,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "token": kwargs.get("token") or self.token,
             },
         }
-        response = requests.post(
+        response = self.session.post(
             "https://appfuwu.189.cn:9021/query/userFluxPackage",
             headers=self.headers,
             json=body,
@@ -179,7 +203,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
                 "token": kwargs.get("token") or self.token,
             },
         }
-        response = requests.post(
+        response = self.session.post(
             "https://appfuwu.189.cn:9021/query/qryShareUsage",
             headers=self.headers,
             json=body,

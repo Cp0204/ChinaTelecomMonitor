@@ -112,7 +112,15 @@ def main():
         # 记录登录失败次数，避免风控
         login_fail_time = CONFIG_DATA.get("loginFailTime", 0)
         if login_fail_time < 5:
-            data = telecom.do_login(phonenum, password)
+            # 验证过的信任设备，免验证码
+            safe_device = {}
+            if device_uid := (os.environ.get("TELECOM_DEVICE_UID") or CONFIG_DATA.get("device_uid")):
+                # iOS
+                safe_device["device_uid"] = device_uid
+            elif android_id := (os.environ.get("TELECOM_ANDROID_ID") or CONFIG_DATA.get("android_id")):
+                # Android
+                safe_device["android_id"] = android_id
+            data = telecom.do_login(phonenum, password, **safe_device)
             if data.get("responseData").get("resultCode") == "0000":
                 print(f"自动登录：成功")
                 login_info = data["responseData"]["data"]["loginSuccessResult"]
@@ -124,12 +132,7 @@ def main():
                 CONFIG_DATA["loginFailTime"] = 0
                 telecom.set_login_info(login_info)
             else:
-                login_fail_time = int(
-                    data.get("responseData", {})
-                    .get("data", {})
-                    .get("loginFailResult", {})
-                    .get("loginFailTime", login_fail_time + 1)
-                )
+                login_fail_time = login_fail_time + 1
                 CONFIG_DATA["loginFailTime"] = login_fail_time
                 update_config()
                 add_notify(f"自动登录：已连续失败{login_fail_time}次，程序退出")

@@ -83,7 +83,7 @@ PMpq0/XKBO8lYhN/gwIDAQAB
         ).days
         return int((fee_remain_flow / days_in_month))
 
-    def do_login(self, phonenum, password):
+    def do_login(self, phonenum, password, **kwargs):
         phonenum = phonenum or self.phonenum
         password = password or self.password
         uuid = str(random.randint(1000000000000000, 9999999999999999))
@@ -93,19 +93,27 @@ PMpq0/XKBO8lYhN/gwIDAQAB
             "content": {
                 "fieldData": {
                     "accountType": "",
+                    "androidId": kwargs.get("android_id", ""),
                     "authentication": self.trans_number(password),
-                    "deviceUid": uuid[:16],
+                    "deviceUid": kwargs.get("device_uid", ""),
                     "isChinatelecom": "",
+                    "loginAuthCipher": "",
                     "loginAuthCipherAsymmertric": self.encrypt(enc_str),
                     "loginType": "4",
                     "phoneNum": self.trans_number(phonenum),
+                    "signSignatureString": "",
                     "systemVersion": "13.2.3",
                 },
                 "attach": "test",
             },
             "headerInfos": {
+                "broadAccount": "",
+                "broadToken": "",
                 "code": "userLoginNormal",
                 "clientType": self.client_type,
+                "fixedLineAccount": "",
+                "fixedLineToken": "",
+                "provinceCode": "",
                 "timestamp": ts,
                 "shopId": "20002",
                 "source": "110003",

@@ -51,7 +51,12 @@ def login():
             return jsonify({"message": "手机号不在白名单"}), 400
 
     login_info = load_login_info()
-    data = telecom.do_login(phonenum, password)
+    data = telecom.do_login(
+        phonenum,
+        password,
+        android_id=data.get("android_id", ""),
+        device_uid=data.get("device_uid", ""),
+    )
     if data.get("responseData").get("resultCode") == "0000":
         login_info[phonenum] = data["responseData"]["data"]["loginSuccessResult"]
         login_info[phonenum]["phonenum"] = phonenum

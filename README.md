@@ -166,10 +166,21 @@ services:
 }
 ```
 
-接口均支持 POST 和 GET 方法，如 GET ：
+接口均支持 POST 和 GET 方法，参数如下：
+
+| 参数         | 必填 | 说明                                      |
+| ------------ | ---- | ----------------------------------------- |
+| `phonenum`   | 是   | 电信手机号码                              |
+| `password`   | 是   | 服务密码                                  |
+| `android_id` | 否   | Android 信任设备参数，默认空字符串         |
+| `device_uid` | 否   | iOS 信任设备参数，默认空字符串             |
+
+设备参数在登录时生效。查询接口自动登录或 token 过期后重新登录时，也会使用请求中传入的设备参数；已有有效 token 时仍复用缓存。
+
+如 GET ：
 
 ```
-http://127.0.0.1:10000/summary?phonenum=18912345678&password=123456
+http://127.0.0.1:10000/summary?phonenum=18912345678&password=123456&android_id=your-android-id
 ```
 
 POST 时 Body 须为 json 数据，如：
@@ -178,7 +189,7 @@ POST 时 Body 须为 json 数据，如：
 curl --request POST \
   --url http://127.0.0.1:10000/summary \
   --header 'Content-Type: application/json' \
-  --data '{"phonenum": "18912345678","password": "123456"}'
+  --data '{"phonenum": "18912345678","password": "123456","android_id": "your-android-id"}'
 ```
 
 ## 感谢
